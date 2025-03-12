@@ -204,4 +204,11 @@ O código é comentado internamente, mas a modularidade permite ajustes fáceis 
 - Satisfação dos Pacientes:
     - Média de respostas a pesquisas (meta: 4.0/5).
 
+## Custos
 
+- Infraestrutura na Nuvem (Google Cloud)
+    - Google Cloud Storage (GCS):  Gratuito até 5GB/mês, após isso o preço varia em aproximadamente US$ 0,02 - 0,01 por GB/mês.
+    - Google Cloud Functions: Custo por número de execuções (ex.: a cada novo CSV carregado). Primeiros 2 milhões de invocações são gratuitos por mês, depois US$ 0,40 por milhão.
+- API do Twilio (Envio de Mensagens via WhatsApp)
+    - Custo por Mensagem (Utility conversation): Varia por país. No Brasil, cerca de US$ 0,005 por mensagem enviada
+    - Custo por Conversa (Utility conversation): US$ 0,008 por conversa iniciada (sessão de 24 horas).

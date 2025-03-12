@@ -8,8 +8,19 @@ data/processed/*
 # Manter a pasta "processed" (mesmo vazia)
 !data/processed/.gitkeep
 
-# Ignorar a pasta models/ na raiz do projeto
-/models/
+# Ignorar os modelos treinados localmente
+models/binario/modelo_binario/*
+models/config/*
+models/multiclasse/modelo_multiclasse/*
+
+# Manter a pasta "models/binario/modelo_binario" (mesmo vazia)
+!models/binario/modelo_binario/.gitkeep
+
+# Manter a pasta "models/multiclasse" (mesmo vazia)
+!models/multiclasse/modelo_multiclasse/.gitkeep
+
+# Manter a pasta "models/config" (mesmo vazia)
+!models/config/.gitkeep
 
 # Incluir a pasta src/models/ e seu conteúdo
 !src/models/
