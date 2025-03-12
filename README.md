@@ -1,6 +1,6 @@
 # Documentação do Sistema de Agendamento de Exames
 
-Este documento fornece todas as informações necessárias para entender, executar e melhorar o sistema de agendamento de exames baseado em IA que desenvolvemos. Abaixo estão os obejtivos do projeto, instruções de execução, a arquitetura detalhada, justificativas de tecnologia, explicação do código e sugestões de melhorias com desafios, riscos e métricas.
+Este documento fornece todas as informações necessárias para entender, executar e melhorar o sistema de agendamento de exames baseado em Machine Learning que desenvolvemos. Abaixo estão os obejtivos do projeto, instruções de execução, a arquitetura detalhada, justificativas de tecnologia, explicação do código e sugestões de melhorias com desafios, riscos e métricas.
 
 ---
 ## Objetivo do projeto
@@ -57,7 +57,6 @@ Abaixo estão os módulos e como funcionariam em uma implementação real na GCP
 
 1. **Armazenamento no Google Cloud Storage (GCS)**
     - Arquivos CSV brutos (data/raw/) seriam armazenados no GCS ao invés do sistema de arquivos local.
-    - O módulo monitor.py já foi estruturado para enviar os arquivos para o GCS automaticamente (em comentários no código fonte para não inteferir no funcionamento local do sistema).
 2. **Processamento Automático com Cloud Functions (cloud_function.py)**
     - Em uma versão escalável, sempre que um novo CSV fosse enviado ao GCS, uma Cloud Function seria ativada para:
         - Baixar o CSV para data/raw/
@@ -80,7 +79,6 @@ O sistema inclui um dashboard interativo desenvolvido com a biblioteca Streamlit
         ```bash
         streamlit run dashboard.py
         ```
-        - Acesse o dashboard em --- no seu navegador
 2. **Como usar**
     - Filtros de Consulta: Use o sidebar para selecionar a visão ("Estruturado", "Não Estruturado", "Resultado Processado") e o tipo de filtro de data ("Intervalo de Datas" ou "Data Específica").
     - Visualização: Explore tabelas que mostram o total de exames, exames por solicitante e quantidades de exames.
@@ -98,7 +96,7 @@ O sistema inclui um dashboard interativo desenvolvido com a biblioteca Streamlit
 
 ## Descrição Detalhada da Arquitetura
 
-A arquitetura do sistema é dividida em quatro camadas principais, projetadas para processar dados, classificar exames, enviar mensagens e (opcionalmente) oferecer uma interface de monitoramento.
+A arquitetura do sistema é dividida em quatro camadas principais, projetadas para processar dados, classificar exames, enviar mensagens e visualizar os dados de forma dinâmica.
 
 1. **Componentes**
  - **Camada de dados**
@@ -107,11 +105,14 @@ A arquitetura do sistema é dividida em quatro camadas principais, projetadas pa
     - Realiza o treinamento dos modelos de IA (binário e multiclasse), a classificação dos exames e a geração de mensagens personalizadas.
 - **Camada de mensageria**
    - Envia mensagens via API do Twilio e registra os envios.
+- **Camada de visualização dos dados**
+    - Permite a visualização dos dados em dashboards interativos.
 
 2. **Tecnologias**
  - **Camada de Dados**: Sistema de arquivos local e SQLite.
  - **Camada de Processamento**: Python com transformers (DistilBERT), pandas, nlpaug.
  - **Camada de Mensageria**: API Twilio com biblioteca twilio em Python.
+ - **Camada de visualização dos dados**: Streamlit, pandas.
 
 3. **Comunicação**
  - Dados brutos e processados são passados via arquivos CSV.
@@ -120,7 +121,7 @@ A arquitetura do sistema é dividida em quatro camadas principais, projetadas pa
 
 4. **Diagrama**
 
-![Descrição do Diagrama](images\diagrama_Arquitetura_Software.png)
+![Descrição do Diagrama](images/diagrama_Arquitetura_Software.png)
 
 ## Justificativa para escolhas de tecnologias
 
@@ -155,7 +156,7 @@ A arquitetura do sistema é dividida em quatro camadas principais, projetadas pa
 - src/messaging/generate_messages.py:
     - Gera mensagens personalizadas com base no CSV processado, usando um template apelativo.
 - src/messaging/send_messages.py:
-    - Envia mensagens via Twilio e registra cada envio em logs/envios.log (ou db/envios.db com SQLite).
+    - Envia mensagens via Twilio e registra cada envio em db/envios.db com SQLite.
     - Inclui tratamento de erros e logs detalhados.
 - Treinamento (train_binario.py e train_multiclasse.py):
     - Usa transformers para treinar os modelos com DistilBERT, balanceando dados e salvando os modelos em models/.
@@ -164,18 +165,20 @@ O código é comentado internamente, mas a modularidade permite ajustes fáceis 
 
 ## Sugestões de Melhorias, Desafios, Riscos e Métricas
 
+### Melhorias
+
 1. **Testes A/B para Otimizar o Conteúdo das Mensagens:**
     - Testar duas versões de mensagens (ex.: "Temos uma boa notícia!" vs. "Garanta sua vaga agora!") para ver qual aumenta a taxa de agendamento.
     - Implementar dividindo os pacientes em grupos e registrar resultados no log.
     - Benefício: Mensagens mais eficazes.
-2. **Implementação de um canla de comunicação bidirecional**
+2. **Implementação de um canal de comunicação bidirecional**
     - Permitir que pacientes respondam no WhatsApp (ex.: "confirmar" ou "cancelar") usando webhooks do Twilio.
     - Benefício: Interatividade e confirmações diretas.
 3. **Alimentar os modelos com mais dados**
     - Recolher mais informações a respeito dos dados de entrada, como tipos de abreviações de exames (us=Ultrassonografia) para alimentar o modelo binário e o de classificação.
     - Benefício: Maior acurácia de processamento
 
-## Desafios e Riscos
+### Desafios e Riscos
 
 - Qualidade dos Dados:
     - Risco: Dados imprecisos (ex.: telefones errados) causam falhas.
@@ -190,7 +193,7 @@ O código é comentado internamente, mas a modularidade permite ajustes fáceis 
     - Risco: Vazamento de dados sensíveis (CPF/Telefone).
     - Mitigação: Criptografar CSVs/logs, limitar acesso e auditar.
 
-## Métricas de sucesso
+### Métricas de sucesso
 
 - Taxa de Conversão:
     - Percentual de solicitações que viram agendamentos (meta: 40%).
