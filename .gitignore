@@ -5,6 +5,9 @@ env/
 # Arquivos de dados (CSVs brutos e processados)
 data/processed/*
 
+# Manter a pasta "processed" (mesmo vazia)
+!data/processed/
+
 # Modelos treinados
 models/
 
