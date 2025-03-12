@@ -1,0 +1,32 @@
+# Ambientes virtuais
+venv/
+env/
+
+# Arquivos de dados (CSVs brutos e processados)
+data/processed/*
+
+# Modelos treinados
+models/
+
+# Logs e bancos de dados
+db/
+
+# Arquivos temporários do Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Arquivos temporários do sistema operacional
+.DS_Store
+Thumbs.db
+
+# Arquivos sensíveis (ex.: credenciais)
+.env
+*.key
+*.pem
+
+# Arquivos de build e pacotes
+dist/
+build/
+*.egg-info/

@@ -1,0 +1,112 @@
+# Funções de balanceamento e classificação
+
+import pandas as pd
+from src.models.predict import predict_exam_batch
+from src.data.load_data import load_data
+
+# Mapeamento de CD_TUSS para tipos de exame (baseado na imagem do dataset estruturado)
+tuss_map = {
+    "40901114": "ULTRASSONOGRAFIA DE MAMA",
+    "40601110": "PROCEDIMENTO DIAGNÓSTICO ANATOMOPATOLÓGICO EM MATERIAL PROVENIENTE DE BIÓPSIAS SIMPLES, PAAF, 'IMPRINT' E 'CELL-BLOCK'",
+    "40805018": "RADIOGRAFIA DE TÓRAX",
+    "40103064": "PESQUISA DE POTENCIAIS EVOCADOS AUDITIVOS DE TRONCO CEREBRAL (BERA)",
+    "40101010": "ECG CONVENCIONAL",
+    "41101014": "RESSONÂNCIA MAGNÉTICA DE CRÂNIO (ENCÉFALO)",
+    "40901483": "DOPPLER COLORIDO VENOSO DE MEMBROS INFERIORES",
+    "20102020": "HOLTER DE 24 HORAS - 2 OU MAIS CANAIS - ANALÓGICO OU DIGITAL",
+    "40901300": "ULTRASSONOGRAFIA TRANSVAGINAL (INCLUI ABDOME INFERIOR FEMININO)",
+    "40101037": "TESTE ERGOMÉTRICO (INCLUI ECG BASAL CONVENCIONAL) - COM DIRETRIZ DE UTILIZAÇÃO",
+    "40808041": "MAMOGRAFIA DIGITAL (COM DIRETRIZ DE UTILIZAÇÃO)",
+    "40601137": "PROCEDIMENTO DIAGNÓSTICO CITOPATOLÓGICO ONCÓTICO DE MATERIAL CÉRVICO-VAGINAL",
+    "40103072": "AUDIOMETRIA TONAL LIMIAR",
+    "40901203": "ULTRASSONOGRAFIA DE ÓRGÃOS SUPERFICIAIS (TIREÓIDE, ESCROTO, PÊNIS OU CRÂNIO)",
+    "40901122": "ULTRASSONOGRAFIA DE ABDOME TOTAL",
+    "40901220": "ULTRASSONOGRAFIA ARTICULAR",
+    "40901106": "ECODOPPLERCARDIOGRAMA TRANSTORÁCICO",
+    "41101316": "RESSONÂNCIA MAGNÉTICA ARTICULAR",
+    "41001117": "TOMOGRAFIA COMPUTADORIZADA DE PELVE OU BACIA",
+    "40802051": "RADIOGRAFIA DE COLUNA LOMBO-SACRA",
+    "41101189": "RESSONÂNCIA MAGNÉTICA DE PELVE",
+    "40601129": "PROCEDIMENTO DIAGNÓSTICO CITOPATOLÓGICO ONCÓTICO DE LÍQUIDOS E RASPADOS CUTÂNEOS",
+    "41101227": "RESSONÂNCIA MAGNÉTICA DE COLUNA CERVICAL, DORSAL OU LOMBAR",
+    "40105075": "ESPIROMETRIA FORÇADA - VOLUMES E FLUXOS MÁXIMOS (COM/SEM BD)",
+    "41101170": "RESSONÂNCIA MAGNÉTICA DE ABDOME SUPERIOR (FÍGADO, PÂNCREAS, BAÇO, RINS, SUPRA-RENAIS, RETROPERITÔNIO)",
+    "40901360": "DOPPLER COLORIDO DE VASOS CERVICAIS ARTERIAIS (CARÓTIDAS E VERTEBRAIS)",
+    "40808130": "DENSITOMETRIA ÓSSEA - QUALQUER SEGMENTO",
+    "20102038": "MONITORIZAÇÃO AMBULATORIAL DA PRESSÃO ARTERIAL - MAPA (24 HORAS) - COM DIRETRIZ DE UTILIZAÇÃO",
+    "40804011": "RADIOGRAFIA DE BACIA",
+    "40601013": "PROCEDIMENTO DIAGNÓSTICO ANATOMOPATOLÓGICO POR CONGELAÇÃO DURANTE ATO CIRÚRGICO",
+    "40101045": "TESTE ERGOMÉTRICO (INCLUI ECG BASAL CONVENCIONAL) - COM DIRETRIZ DE UTILIZAÇÃO",
+    "40803139": "RADIOGRAFIA DE MÃOS E PUNHOS PARA IDADE ÓSSEA",
+    "41001095": "TOMOGRAFIA COMPUTADORIZADA DE ABDOME TOTAL (ABDOME SUPERIOR, PELVE E RETROPERITÔNIO)",
+    "41101308": "RESSONÂNCIA MAGNÉTICA DE PÉ (ANTEPÉ)",
+    "41101537": "ANGIO-RM (CRÂNIO, PESCOÇO, TÓRAX, ABDOME SUPERIOR OU PELVE) - ARTERIAL OU VENOSA",
+    "40202615": "TESTE DA UREASE PARA HELICOBACTER PYLORI (TESTE DE HEALD)",
+    "40802035": "RADIOGRAFIA DE COLUNA DORSAL",
+    "29020085": "Exame não identificado",
+    "41001079": "TOMOGRAFIA COMPUTADORIZADA DE TÓRAX",
+    "40804097": "RADIOGRAFIA DE PÉ OU PODODÁCTILO",
+    "40901130": "ULTRASSONOGRAFIA DE ABDOME SUPERIOR",
+    "40804054": "RADIOGRAFIA DE JOELHO",
+    "20010010": "Exame não identificado", # Não encontrado na tabela TUSS
+    "45552": "Exame não identificado",
+    "41301340": "URODINÂMICA COMPLETA",
+    "41101480": "RESSONÂNCIA MAGNÉTICA DE MAMA",
+    "40901084": "ECODOPPLERCARDIOGRAMA FETAL COM MAPEAMENTO DE FLUXO",
+    "40805026": "RADIOGRAFIA DE TÓRAX",
+    "40901262": "ULTRASSONOGRAFIA OBSTÉTRICA MORFOLÓGICA",
+    "41101545": "ANGIO-RM (CRÂNIO, PESCOÇO, TÓRAX, ABDOME SUPERIOR OU PELVE) - ARTERIAL OU VENOSA",
+    "40901076": "ECODOPPLERCARDIOGRAMA COM ESTRESSE FARMACOLÓGICO/ESTRESSE FÍSICO",
+    "40103579": "POTENCIAL EVOCADO AUDITIVO DE MÉDIA LATÊNCIA (PEA-ML)",
+    "20010141": "Exame não identificado",
+    "40901238": "ULTRASSONOGRAFIA OBSTÉTRICA COM TRANSLUCÊNCIA NUCAL",
+    "41001010": "TOMOGRAFIA COMPUTADORIZADA DE CRÂNIO, SELA TÚRCICA OU ÓRBITAS",
+    "41301374": "COLPOSCOPIA, VULVOSCOPIA, PENISCOPIA, ANUSCOPIA",
+    "40801128": "RADIOGRAFIA DE ADENÓIDES OU CAVUM",
+    "40901181": "ULTRASSONOGRAFIA DE ABDOME INFERIOR FEMININO",
+    "40201120": "ENDOSCOPIA DIGESTIVA ALTA",
+    "41001230": "ANGIOTOMOGRAFIA CORONARIANA (COM DIRETRIZ DE UTILIZAÇÃO)",
+    "40202666": "COLONOSCOPIA COM BIÓPSIA E/OU CITOLOGIA COM OU SEM DILATAÇÃO SEGMENTAR OU ESTENOSTOMIA",
+    "40901750": "ULTRASSONOGRAFIA TRANSRETAL",
+    "40901157": "Exame não identificado",
+    "51010127": "Exame não identificado",
+    "40201082": "COLONOSCOPIA COM BIÓPSIA E/OU CITOLOGIA COM OU SEM DILATAÇÃO SEGMENTAR OU ESTENOSTOMIA",
+    "40802019": "RADIOGRAFIA DE COLUNA CERVICAL",
+    "17111013": "Exame não identificado",
+    "33010021": "Exame não identificado",
+    "40901769": "ULTRASSONOGRAFIA DE APARELHO URINÁRIO MASCULINO",
+    "40901173": "ULTRASSONOGRAFIA DE ABDOME INFERIOR MASCULINO",
+    "42352": "Exame não identificado",
+    "40103536": "POLISSONOGRAFIA COM EEG DE NOITE INTEIRA COM OU SEM TESTE DE CPAP NASAL (INCLUI POLISSONOGRAMAS)",
+}
+
+
+def process_data(): # Processa os datasets estruturado e não estruturado, identificando os exames.
+    # Carrega os dados
+    estruturado, nao_estruturado = load_data()
+    
+    # Processa o dataset estruturado usando o CD_TUSS
+    estruturado["exame_resultado"] = estruturado["CD_TUSS"].map(lambda x: tuss_map.get(str(x), "Não é exame de imagem")) # X = codigo TUSS
+    df_estrturado_dash = estruturado
+    df_estrturado_dash.to_csv("data/processed/estruturado_processado.csv", index=False)
+    
+    # Limpa valores nulos na coluna DS_RECEITA e converte para string para não haver conflit com o tranformers
+    nao_estruturado["DS_RECEITA"] = nao_estruturado["DS_RECEITA"].fillna("")  # Substitui NaN por string vazia
+    nao_estruturado["DS_RECEITA"] = nao_estruturado["DS_RECEITA"].astype(str)  # Garante que seja string
+
+    print(f"Processando {len(nao_estruturado)} linhas do dataset não estruturado...")
+    for idx in range(0, len(nao_estruturado), 100):  # Print a cada 100 linhas
+        print(f"Processadas {idx} linhas...")
+
+    # Processa em lote usando predict_exam_batch
+    predictions = predict_exam_batch(nao_estruturado["DS_RECEITA"].tolist(), batch_size=32)
+    nao_estruturado["exame_resultado"] = predictions
+    df_nao_estrturado_dash = nao_estruturado
+    df_nao_estrturado_dash.to_csv("data/processed/nao_estruturado_processado.csv", index=False)
+    
+    # Combina os dataframes
+    df_combined = pd.concat([estruturado, nao_estruturado], ignore_index=True)
+    df_combined.to_csv("data/processed/resultado_processado.csv", index=False)
+    return df_combined
+
+

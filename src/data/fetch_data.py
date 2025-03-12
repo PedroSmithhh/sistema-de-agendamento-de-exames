@@ -1,0 +1,1 @@
+# Script para buscar dados da API externa
