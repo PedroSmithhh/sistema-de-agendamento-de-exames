@@ -87,7 +87,7 @@ O sistema inclui um dashboard interativo desenvolvido com a biblioteca Streamlit
     - Streamlit: Biblioteca Python para criar interfaces web interativas de forma rápida e simples.
     - Pandas: Utilizado para manipulação e análise dos dados dos CSVs.
 
-4. **Infomrações Valiosas Oferecidas**
+4. **Informações Valiosas Oferecidas**
     - Total de Exames Solicitados/Processados: Mostra o número de exames em um intervalo ou data específica, ajudando a monitorar o volume de trabalho.
     - Exames por Solicitante: Identifica quais médicos solicitam mais exames, permitindo um acompanhamento mais direcionado.
     - Tendências Temporais: Permite observar variações no volume de exames ao longo do tempo, facilitando a otimização do envio de mensagens.

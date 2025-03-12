@@ -8,8 +8,11 @@ data/processed/*
 # Manter a pasta "processed" (mesmo vazia)
 !data/processed/.gitkeep
 
-# Modelos treinados
-models/
+# Ignorar a pasta models/ na raiz do projeto
+/models/
+
+# Incluir a pasta src/models/ e seu conteúdo
+!src/models/
 
 # Logs e bancos de dados
 db/
