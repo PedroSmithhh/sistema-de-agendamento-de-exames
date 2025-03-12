@@ -77,7 +77,7 @@ O sistema inclui um dashboard interativo desenvolvido com a biblioteca Streamlit
     - Execução do Dashboard:
         - Execute o script do dashboard:
         ```bash
-        streamlit run dashboard.py
+        streamlit run src/dashboard/dashboard.py
         ```
 2. **Como usar**
     - Filtros de Consulta: Use o sidebar para selecionar a visão ("Estruturado", "Não Estruturado", "Resultado Processado") e o tipo de filtro de data ("Intervalo de Datas" ou "Data Específica").
