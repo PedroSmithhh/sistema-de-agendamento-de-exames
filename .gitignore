@@ -6,7 +6,7 @@ env/
 data/processed/*
 
 # Manter a pasta "processed" (mesmo vazia)
-!data/processed/
+!data/processed/.gitkeep
 
 # Modelos treinados
 models/
